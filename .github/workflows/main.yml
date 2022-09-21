@@ -1,0 +1,27 @@
+name: Projects
+# 触发器
+on:
+  schedule:
+    - cron: 45 0/12 2 * * 
+  workflow_dispatch:
+env:
+  TZ: "Asia/Hong_Kong"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v2
+        
+    - name: Clone project
+      run: |
+        git clone --depth=1 https://gitcode.net/qq_32394351/dr_py Projects
+        cp -r Projects/* ${{ github.workspace }}
+        rm -rf Projects
+    - name: Update files
+      uses: EndBug/add-and-commit@v7
+      with:
+        default_author: github_actions
+        message: 'update files'
+        add: ${{ github.workspace }}/*
