@@ -2,7 +2,7 @@ name: Projects
 # 触发器
 on:
   schedule:
-    - cron: 45 0/12 2 * * 
+    - cron: 45 12 * * * 
   workflow_dispatch:
 env:
   TZ: "Asia/Hong_Kong"
