@@ -2,10 +2,8 @@ name: Projects
 # 触发器
 on:
   schedule:
-    - cron: 30 16 * * * 
+    - cron: 30 0/4 * * * 
   workflow_dispatch:
-env:
-  TZ: "Asia/Hong_Kong"
 
 jobs:
   build:
