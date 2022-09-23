@@ -2,15 +2,28 @@ name: Projects
 # 触发器
 on:
   schedule:
-    - cron: 0 19 * * * 
+    - cron: '0 15 * * 0' #每周天在国际标准时间15点(北京时间+8，即 23:00)
   workflow_dispatch:
+#    inputs:
+#      root_sol:
+#        description: "TVBox"
+#        required: true
+#        default: "tv"
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    
     steps:
+      # 检出代码
     - uses: actions/checkout@v2
+      # 删除旧的工作流
+    - name: Delete TVBox JSON
+      uses: Mattraks/delete-workflow-runs@v2
+      with:
+        token: ${{ github.token }}
+        repository: ${{ github.repository }}
+        retain_days: 6 # 只留最新6条
+        keep_minimum_runs: 6 # 只留最新6条
         
     - name: Clone project
       run: |
