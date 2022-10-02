@@ -2,7 +2,7 @@ name: Projects
 # 触发器
 on:
   schedule:
-    - cron: '0 19 * * 0' #每周天在国际标准时间19点(北京时间+8，即 03:00)
+    - cron: 0 19 * * 0 #每周天在国际标准时间19点(北京时间+8，即 03:00)
   workflow_dispatch:
 #    inputs:
 #      root_sol:
