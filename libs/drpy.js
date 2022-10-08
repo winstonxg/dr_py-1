@@ -1,7 +1,6 @@
 // import 'https://gitcode.net/qq_32394351/dr_py/-/raw/master/libs/es6py.js';
 // import {是否正版,urlDeal,setResult,setResult2,setHomeResult,maoss,urlencode} from 'http://192.168.10.103:5705/libs/es6py.js';
 // import 'http://192.168.1.124:5705/libs/es6py.js';
-
 import cheerio from 'https://gitcode.net/qq_32394351/dr_py/-/raw/master/libs/cheerio.min.js';
 // import cheerio from 'http://192.168.10.103:5705/libs/cheerio.min.js';
 
@@ -10,13 +9,16 @@ import 'https://gitcode.net/qq_32394351/dr_py/-/raw/master/libs/drT.js';
 import muban from 'https://gitcode.net/qq_32394351/dr_py/-/raw/master/js/模板.js';
 // import muban from 'http://192.168.10.103:5705/admin/view/模板.js';
 
-
 // const key = 'drpy_zbk';
 // eval(req('http://192.168.1.124:5705/libs/es6py.js').content);
 function init_test(){
     console.log("init_test_start");
     console.log(RKEY);
     console.log(JSON.stringify(rule));
+    // let aa = base64Encode('编码测试一下')
+    // log(aa);
+    // let bb = base64Decode(aa);
+    // log('bb:'+bb);
     // clearItem(RULE_CK);
     // console.log(JSON.stringify(rule));
     // console.log(request('https://www.baidu.com',{withHeaders:true}));
@@ -317,10 +319,12 @@ function urlencode (str) {
 }
 
 function base64Encode(text){
+    // return Base64.encode(text)
     return text
 }
 
 function base64Decode(text){
+    // return Base64.decode(text)
     return text
 }
 
@@ -399,7 +403,8 @@ const parseTags = {
             if (!parse || !parse.trim()){
                 return '';
             }
-            if (typeof (html) === 'string'){
+            if (typeof(html) === 'string'){
+                // print('jsonpath:pdfh字符串转dict');
                 html = JSON.parse(html);
             }
             parse = parse.trim();
@@ -427,7 +432,8 @@ const parseTags = {
             if (!parse || !parse.trim()){
                 return '';
             }
-            if (typeof (html) === 'string'){
+            if (typeof(html) === 'string'){
+                // print('jsonpath:pdfa字符串转dict');
                 html = JSON.parse(html);
             }
             parse = parse.trim()
@@ -567,6 +573,10 @@ function dealJson(html) {
         return html.match(/[\w|\W|\s|\S]*?(\{[\w|\W|\s|\S]*\})/).group[1];
     } catch (e) {
     }
+    try {
+        html = JSON.parse(html);
+    }catch (e) {}
+    // console.log(typeof(html));
     return html;
 }
 
@@ -674,6 +684,9 @@ function getHome(url){
     }
     let tmp = url.split('//');
     url = tmp[0] + '//' + tmp[1].split('/')[0];
+    try {
+        url = decodeURIComponent(url);
+    }catch (e) {}
     return url
 }
 
@@ -708,7 +721,6 @@ function buildUrl(url,obj){
 function require(url){
     eval(request(url));
 }
-
 /**
  * 海阔网页请求函数完整封装
  * @param url 请求链接
@@ -781,7 +793,7 @@ print = function (data){
     }
     console.log(data);
 }
-log = console.log;
+log = print;
 /**
  * 检查宝塔验证并自动跳过获取正确源码
  * @param html 之前获取的html
@@ -939,6 +951,7 @@ function homeVodParse(homeVodObj){
         // print(p[0]);
         let html = getHtml(MY_URL);
         if(is_json){
+            // print('是json,开始处理');
             html = dealJson(html);
         }
         try {
@@ -1466,6 +1479,15 @@ function playParse(playObj){
         rule.searchUrl = rule.searchUrl||'';
         rule.homeUrl = rule.host&&rule.homeUrl?urljoin(rule.host,rule.homeUrl):(rule.homeUrl||rule.host);
         rule.detailUrl = rule.host&&rule.detailUrl?urljoin(rule.host,rule.detailUrl):rule.detailUrl;
+        if(rule.url.includes('[')&&rule.url.includes(']')){
+            let u1 = rule.url.split('[')[0]
+            let u2 = rule.url.split('[')[1].split(']')[0]
+            rule.url = rule.host && rule.url?urljoin(rule.host,u1)+'['+urljoin(rule.host,u2)+']':rule.url;
+        }else{
+            rule.url = rule.host && rule.url ? urljoin(rule.host,rule.url) : rule.url;
+        }
+        rule.searchUrl = rule.host && rule.searchUrl ? urljoin(rule.host,rule.searchUrl) : rule.searchUrl;
+
         rule.timeout = rule.timeout||5000;
         rule.encoding = rule.编码||rule.encoding||'utf-8';
         if(rule.headers && typeof(rule.headers) === 'object'){
@@ -1503,7 +1525,7 @@ function home(filter) {
     console.log("home");
     let homeObj = {
         filter:rule.filter||false,
-        MY_URL: rule.host,
+        MY_URL: rule.homeUrl,
         class_name: rule.class_name || '',
         class_url: rule.class_url || '',
         class_parse: rule.class_parse || '',
@@ -1538,7 +1560,7 @@ function homeVod(params) {
  */
 function category(tid, pg, filter, extend) {
     let cateObj = {
-        url: urljoin(rule.host, rule.url),
+        url: rule.url,
         一级: rule.一级,
         tid: tid,
         pg: parseInt(pg),
@@ -1604,7 +1626,7 @@ function play(flag, id, flags) {
  */
 function search(wd, quick) {
     let searchObj = {
-        searchUrl: urljoin(rule.host, rule.searchUrl),
+        searchUrl: rule.searchUrl,
         搜索: rule.搜索,
         wd: wd,
         //pg: pg,

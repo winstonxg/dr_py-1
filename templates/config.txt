@@ -20,6 +20,7 @@
     "name":"{{ rule.name }}(drpy)",
     "type":3,
     "api":"{{ host }}/libs/drpy.min.js",
+    #"api":"{{ host }}/libs/drpy.js",
     "searchable": {{ rule.searchable }},
     "quickSearch": {{ rule.quickSearch }},
     "filterable": {{ rule.filterable }},
@@ -30,7 +31,7 @@
     "name":"drpy(道长)",
     "type":1,
     "api":"{{ host }}/vod?rule=drpy",
-    "searchable": 2,
+    "searchable": 1,
     "quickSearch": 1,
     "filterable": 1
 }{% endif %}
