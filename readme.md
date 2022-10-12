@@ -39,13 +39,16 @@
 <img src="https://img.shields.io/badge/install support-termux|windows|ubuntu|python3.6~python3.8-yellowgreen" />
 </a>
 
+[JS引擎的选择](./python最强js引擎.md)  
 [搭建教程](./安卓本地搭建说明.md) | [install_help](./安卓本地搭建说明.md)  |[goorm](./道长乱说.md)  
 [dr项目QQ官群](https://qm.qq.com/cgi-bin/qm/qr?k=H2KwcXrMdiR5M2blHR5gjZzPfN_S3N_C&jump_from=webapi)  
 [参考T4](https://github.com/sec-an/TV_Spider/blob/main/spider/sp360.py)  
 [golang最好的js引擎-otto](https://github.com/robertkrimen/otto)   
 [dockerfile教程](https://blog.csdn.net/qq_46158060/article/details/125718218)   
 [获取本地设备信息](https://blog.csdn.net/cui_yonghua/article/details/125508991)   
-[获取本地设备信息](https://m.jb51.net/article/140716.htm)   
+[获取本地设备信息](https://m.jb51.net/article/140716.htm)  
+###### 2022/10/12
+- [X] js模式2动态配置链接支持多种壳子
 ###### 2022/10/11
 - [X] 增加自建解析加密示例
 - [X] 发布3.9.0镜像,重大升级，优化js装载速度
