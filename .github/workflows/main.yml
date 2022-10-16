@@ -30,6 +30,7 @@ jobs:
         git clone --depth=1 https://gitcode.net/qq_32394351/dr_py Projects
         cp -r Projects/* ${{ github.workspace }}
         rm -rf Projects
+        mv -r app.py main.py
     - name: Update files
       uses: EndBug/add-and-commit@v7
       with:
