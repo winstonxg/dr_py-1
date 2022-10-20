@@ -1,6 +1,7 @@
 js:
 // let d = [];
-VOD = {vod_id:input};
+// VOD = {vod_id:input};
+VOD = {};
 let html = request(input);
 
 function adhead(url){
@@ -60,9 +61,9 @@ try {
         // print(lists);
         // print(shows);
         let vod_lists = []; // 拿$$$去填
-        if(typeof(play_url)==='undefined'){
-            var play_url = '';
-        }
+        // if(typeof(play_url)==='undefined'){
+        //     var play_url = '';
+        // }
         play_url = play_url.replace('&play_url=','&type=json&play_url=');
         lists.forEach(function (item,idex){ // item是个json列表
             if (item || shows) { // 动漫,电视剧
