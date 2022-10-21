@@ -40,13 +40,18 @@
 </a>
 
 [JS引擎的选择](./python最强js引擎.md)  
-[搭建教程](./安卓本地搭建说明.md) | [install_help](./安卓本地搭建说明.md)  |[goorm](./道长乱说.md)  
+[搭建教程](./安卓本地搭建说明.md) | [install_help](./安卓本地搭建说明.md)  |[goorm](./道长乱说.md) |[大佬地盘](./大佬友链.md) 
 [dr项目QQ官群](https://qm.qq.com/cgi-bin/qm/qr?k=H2KwcXrMdiR5M2blHR5gjZzPfN_S3N_C&jump_from=webapi)  
 [参考T4](https://github.com/sec-an/TV_Spider/blob/main/spider/sp360.py)  
 [golang最好的js引擎-otto](https://github.com/robertkrimen/otto)   
 [dockerfile教程](https://blog.csdn.net/qq_46158060/article/details/125718218)   
 [获取本地设备信息](https://blog.csdn.net/cui_yonghua/article/details/125508991)   
-[获取本地设备信息](https://m.jb51.net/article/140716.htm) 
+[获取本地设备信息](https://m.jb51.net/article/140716.htm)
+###### 2022/10/21
+- [X] 源新增了play_json属性和与之对应的哔哩直播,jrs看直播等源
+- [X] 修复俊版无法搜索问题(还需要壳子彻底解决console.log函数问题,无法打印大数据)
+- [X] 升级至3.9.14,drpy.js代码中开始记录版本号
+- [X] 升级至3.9.14beta2 json优化并增加荐片源
 ###### 2022/10/20
 - [X] 新增了几个源
 - [X] 修复乐猪TV源并记录已知问题
@@ -363,6 +368,15 @@ var rule = {
     tab_exclude:'',
     // 服务器解析播放
     play_parse:true,
+    // play_json　传数组或者　类　true/false 比如 0,1 如果不传会内部默认处理 不传和传0可能效果不同
+    // 效果等同说明: play_json:[{re:'*', json:{jx:0, parse:1}}], 等同于 play_json:0,
+    play_json:[{
+        re:'*',
+        json:{
+            jx:1,
+            parse:1,
+        },
+    }],
     // 自定义免嗅
     lazy:'',
     // 首页推荐显示数量
