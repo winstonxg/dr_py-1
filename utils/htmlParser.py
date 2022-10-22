@@ -58,12 +58,19 @@ class jsoup:
                         ret = re.search('url\((.*?)\)',ret,re.M|re.S).groups()[0]
                     except:
                         pass
-                if ret and add_url and option in ['url','src','href','data-original','data-src']:
-                    if 'http' in ret:
-                        ret = ret[ret.find('http'):]
-                    else:
-                        ret = urljoin(self.MY_URL,ret)
-                    # print(ret)
+
+                if ret and add_url:
+                    # pd_list = 'url|src|href|data-original|data-src|data-play|data-url'.split('|')
+                    # need_add = option in pd_list
+
+                    need_add = re.search('(url|src|href|-original|-src|-play|-url)$', option, re.M | re.I)
+                    # print(f'option:{option},need_add:{need_add}')
+                    if need_add:
+                        if 'http' in ret:
+                            ret = ret[ret.find('http'):]
+                        else:
+                            ret = urljoin(self.MY_URL,ret)
+                        # print(ret)
         else:
             # ret = doc(parse+':first')
             ret = doc(parse) # 由于是生成器,直接转str就能拿到第一条数据,不需要next
@@ -91,6 +98,7 @@ class jsoup:
         # 节点转字符串
         # print(str(etree.tostring(result[0], pretty_print=True), 'utf-8'))
         # res = [item for item in result.items()]
+        # print(res)
         res = [item.outerHtml() for item in result.items()] #  这个才是对的！！str() item str(etree.tostring 统统错误
         # res = [str(item) for item in result.items()]
         # res = [str(etree.tostring(item, pretty_print=True), 'utf-8') for item in result]
