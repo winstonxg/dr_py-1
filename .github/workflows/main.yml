@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # 检出代码
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       # 删除旧的工作流
     - name: Delete TVBox JSON
       uses: Mattraks/delete-workflow-runs@v2
