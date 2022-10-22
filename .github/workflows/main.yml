@@ -18,7 +18,7 @@ jobs:
     - uses: actions/checkout@v3
       # 删除旧的工作流
     - name: Delete TVBox JSON
-      uses: Mattraks/delete-workflow-runs@v2
+      uses: Mattraks/delete-workflow-runs@v3
       with:
         token: ${{ github.token }}
         repository: ${{ github.repository }}
