@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 #    inputs:
 #      root_sol:
-#        description: "TVBox"
+#        description: "Project"
 #        required: true
 #        default: "tv"
 
@@ -17,7 +17,7 @@ jobs:
       # 检出代码
     - uses: actions/checkout@v3
       # 删除旧的工作流
-    - name: Delete TVBox JSON
+    - name: Delete action workflows
       uses: Mattraks/delete-workflow-runs@v2
       with:
         token: ${{ github.token }}
