@@ -1,6 +1,6 @@
 // import _ from 'https://underscorejs.org/underscore-esm-min.js'
-import { distance } from 'https://unpkg.com/fastest-levenshtein@1.0.16/esm/mod.js'
-import {getFirstLetterList } from 'https://gitcode.net/qq_32394351/dr_py/-/raw/master/libs/pinyin_getFirstLetterList.js'
+import {distance} from 'https://unpkg.com/fastest-levenshtein@1.0.16/esm/mod.js'
+import {sortListByCN} from 'https://gitcode.net/qq_32394351/dr_py/-/raw/master/libs/sortName.js'
 
 /**
  * alist js
@@ -10,6 +10,7 @@ import {getFirstLetterList } from 'https://gitcode.net/qq_32394351/dr_py/-/raw/m
 				server:'地址',
 				startPage:'/',		 //启动文件夹
 				showAll: false ,	//是否显示全部文件，默认false只显示 视频和文件夹
+ 				search: true, // 启用小雅的搜索,搜索只会搜第一个开启此开关的磁盘
 				params:{ 			//对应文件夹参数 如设置对应文件夹的密码
 					'/abc':{ password : '123' },
 					'/abc/abc':{ password : '123' },
@@ -26,6 +27,8 @@ var showMode = 'single';
 var searchDriver = '';
 var limit_search_show = 200;
 var search_type = '';
+var detail_order = 'name';
+const request_timeout = 5000;
 /**
  * 打印日志
  * @param any 任意变量
@@ -52,10 +55,21 @@ const http = function (url, options = {}) {
 		options.body = JSON.stringify(options.data);
 		options.headers = Object.assign({'content-type':'application/json'}, options.headers);
 	}
-    const res = req(url, options);
-    res.json = () => res.content ? JSON.parse(res.content) : null;
-    res.text = () => res.content;
-    return res
+	options.timeout = request_timeout;
+	try {
+		const res = req(url, options);
+		res.json = () => res&&res.content ? JSON.parse(res.content) : null;
+		res.text = () => res&&res.content ? res.content:'';
+		return res
+	}catch (e) {
+		return {
+			json() {
+				return null
+			}, text() {
+				return ''
+			}
+		}
+	}
 };
 ["get", "post"].forEach(method => {
     http[method] = function (url, options = {}) {
@@ -66,7 +80,7 @@ const http = function (url, options = {}) {
 const __drives = {};
 
 function isMedia(file){
-	return /\.(wmv|mpeg|mov|ram|swf|mp4|mp3|wma|avi|rm|rmvb|flv|mpg|mkv|m3u8)$/.test(file);
+	return /\.(mp3|aac|wav|wma|cda|flac|m4a|mid|mka|mp2|mpa|mpc|ape|ofr|ogg|ra|wv|tta|ac3|dts|tak|webm|wmv|mpeg|mov|ram|swf|mp4|avi|rm|rmvb|flv|mpg|mkv|m3u8|ts|3gp|asf)$/.test(file.toLowerCase());
 }
 
 function get_drives_path(tid) {
@@ -196,8 +210,9 @@ function home(filter) {
 	}));
 	let filter_dict = {};
 	let filters = [{'key': 'order', 'name': '排序', 'value': [{'n': '名称⬆️', 'v': 'vod_name_asc'}, {'n': '名称⬇️', 'v': 'vod_name_desc'},
+			{'n': '中英⬆️', 'v': 'vod_cn_asc'}, {'n': '中英⬇️', 'v': 'vod_cn_desc'},
 			{'n': '时间⬆️', 'v': 'vod_time_asc'}, {'n': '时间⬇️', 'v': 'vod_time_desc'},
-			{'n': '大小⬆️', 'v': 'vod_size_asc'}, {'n': '大小⬇️', 'v': 'vod_size_desc'}]},
+			{'n': '大小⬆️', 'v': 'vod_size_asc'}, {'n': '大小⬇️', 'v': 'vod_size_desc'},{'n': '无', 'v': 'none'}]},
 			{'key': 'show', 'name': '播放展示', 'value': [{'n': '单集', 'v': 'single'},{'n': '全集', 'v': 'all'}]}
 	];
 	classes.forEach(it=>{
@@ -284,7 +299,6 @@ function category(tid, pg, filter, extend) {
 			}
 		});
 	}
-	print("----category----,tid:"+tid);
 	let fl = filter?extend:{};
 	if(fl.order){
 		// print(fl.order);
@@ -292,18 +306,31 @@ function category(tid, pg, filter, extend) {
 		let order = fl.order.split('_').slice(-1)[0];
 		print(`排序key:${key},排序order:${order}`);
 		if(key.includes('name')){
+			detail_order = 'name';
 			allList = sortListByName(allList,key,order);
+		}else if(key.includes('cn')){
+			detail_order = 'cn';
+			allList = sortListByCN(allList,'vod_name',order);
 		}else if(key.includes('time')){
+			detail_order = 'time';
 			allList = sortListByTime(allList,key,order);
 		}else if(key.includes('size')){
+			detail_order = 'size';
 			allList = sortListBySize(allList,key,order);
+		}else if(fl.order.includes('none')){
+			detail_order = 'none';
+			print('不排序');
 		}
 	}else{
-		allList = sortListByName(allList,'vod_name','asc');
+		// 没传order是其他地方调用的,自动按名称正序排序方便追剧,如果传了none进去就不排序，假装云盘里本身文件顺序是正常的
+		if(detail_order!=='none'){
+			allList = sortListByName(allList,'vod_name','asc');
+		}
 	}
 	if(fl.show){
 		showMode = fl.show;
 	}
+	print("----category----"+`tid:${tid},detail_order:${detail_order},showMode:${showMode}`);
 	// print(allList);
 	return JSON.stringify({
 		'page': 1,
@@ -358,7 +385,7 @@ function detail(tid) {
 	} else {
 		if(isSearch&&!isFile){
 			return getAll(otid,tid,drives,path);
-		}else if(showMode==='all'){
+		}else if(showMode==='all'){ // 不管是搜索还是分类,只要不是 搜索到的文件夹，且展示模式为全部,都获取上级目录的所有文件
 			let new_tid = tid.split('/').slice(0,-1).join('/')+'/';
 			print(`全集模式 tid:${tid}=>tid:${new_tid}`);
 			let { drives, path } = get_drives_path(new_tid);
@@ -430,6 +457,7 @@ function search(wd, quick) {
 			if(vhref){
 				vhref = unescape(vhref);
 			}
+			print(vhref);
 			if(excludeReg.test(vhref)){
 				return; //跳过本次循环
 			}
@@ -437,6 +465,7 @@ function search(wd, quick) {
 			vods.push({
 				vod_name:pdfh(it,'a&&Text'),
 				vod_id:vid,
+				vod_tag: isMedia(vhref) ? 'file' : 'folder',
 				vod_pic:'http://img1.3png.com/281e284a670865a71d91515866552b5f172b.png',
 				vod_remarks:searchDriver
 			});
@@ -488,124 +517,95 @@ function levenshteinDistance(str1, str2) {
     return 100 - 100 * distance(str1, str2) / Math.max(str1.length, str2.length);
 }
 
-// 首字母开头排序
-const sortListByFirst = (vodList,key) => {
-	key = key||'vod_name';
-	// 名字以特殊符号开头的应用列表
-	const symbol_list = [];
-	// 名字以中文开头的应用列表
-	const cn_list = [];
-	// 名字以英文开头的应用列表
-	const en_list = [];
-	// 名字以数字开头的应用列表
-	const num_list = [];
+/**
+ * 自然排序
+ * ["第1集","第10集","第20集","第2集","1","2","10","12","23","01","02"].sort(naturalSort())
+ * @param options {{key,caseSensitive, order: string}}
+ */
+function naturalSort(options) {
+	if (!options) {
+		options = {};
+	}
 
-	vodList.forEach((vod) => {
-		const { vod_name } = vod;
-		//通过正则进行数据分类
-		if (/[\u4e00-\u9fa5]/.test(vod_name[0])) {
-			cn_list.push(vod);
-		} else if (/[a-zA-Z]/.test(vod_name[0])) {
-			en_list.push(vod);
-		} else if (/[\d]/.test(vod_name[0])) {
-			num_list.push(vod);
-		} else {
-			symbol_list.push(vod);
+	return function (a, b) {
+		if(options.key){
+			a = a[options.key];
+			b = b[options.key];
 		}
-	});
-	//按照要求的方式进行数据排序重组
-	const newList = [
-		...cn_list.sort((a, b) => a.vod_name[0]?.localeCompare(b.vod_name[0])),
-		...en_list.sort((a, b) => a.vod_name[0].localeCompare(b.vod_name[0])),//localeCompare可以不区分大小写的进行排序
-		...num_list.sort((a, b) => a.vod_name[0] - b.vod_name[0]),
-		...symbol_list.sort((a, b) => a.vod_name[0] - b.vod_name[0])
-	];
-	return newList
-};
+		var EQUAL = 0;
+		var GREATER = (options.order === 'desc' ?
+				-1 :
+				1
+		);
+		var SMALLER = -GREATER;
 
-// 判断字符串是否全是中文
-function isAllChinese(str) {
-	return /^[\u4E00-\u9FA5]+$/.test(str);
+		var re = /(^-?[0-9]+(\.?[0-9]*)[df]?e?[0-9]?$|^0x[0-9a-f]+$|[0-9]+)/gi;
+		var sre = /(^[ ]*|[ ]*$)/g;
+		var dre = /(^([\w ]+,?[\w ]+)?[\w ]+,?[\w ]+\d+:\d+(:\d+)?[\w ]?|^\d{1,4}[\/\-]\d{1,4}[\/\-]\d{1,4}|^\w+, \w+ \d+, \d{4})/;
+		var hre = /^0x[0-9a-f]+$/i;
+		var ore = /^0/;
+
+		var normalize = function normalize(value) {
+			var string = '' + value;
+			return (options.caseSensitive ?
+					string :
+					string.toLowerCase()
+			);
+		};
+
+		// Normalize values to strings
+		var x = normalize(a).replace(sre, '') || '';
+		var y = normalize(b).replace(sre, '') || '';
+
+		// chunk/tokenize
+		var xN = x.replace(re, '\0$1\0').replace(/\0$/, '').replace(/^\0/, '').split('\0');
+		var yN = y.replace(re, '\0$1\0').replace(/\0$/, '').replace(/^\0/, '').split('\0');
+
+		// Return immediately if at least one of the values is empty.
+		if (!x && !y) return EQUAL;
+		if (!x && y) return GREATER;
+		if (x && !y) return SMALLER;
+
+		// numeric, hex or date detection
+		var xD = parseInt(x.match(hre)) || (xN.length != 1 && x.match(dre) && Date.parse(x));
+		var yD = parseInt(y.match(hre)) || xD && y.match(dre) && Date.parse(y) || null;
+		var oFxNcL, oFyNcL;
+
+		// first try and sort Hex codes or Dates
+		if (yD) {
+			if (xD < yD) return SMALLER;
+			else if (xD > yD) return GREATER;
+		}
+
+		// natural sorting through split numeric strings and default strings
+		for (var cLoc = 0, numS = Math.max(xN.length, yN.length); cLoc < numS; cLoc++) {
+
+			// find floats not starting with '0', string or 0 if not defined (Clint Priest)
+			oFxNcL = !(xN[cLoc] || '').match(ore) && parseFloat(xN[cLoc]) || xN[cLoc] || 0;
+			oFyNcL = !(yN[cLoc] || '').match(ore) && parseFloat(yN[cLoc]) || yN[cLoc] || 0;
+
+			// handle numeric vs string comparison - number < string - (Kyle Adams)
+			if (isNaN(oFxNcL) !== isNaN(oFyNcL)) return (isNaN(oFxNcL)) ? GREATER : SMALLER;
+
+			// rely on string comparison if different types - i.e. '02' < 2 != '02' < '2'
+			else if (typeof oFxNcL !== typeof oFyNcL) {
+				oFxNcL += '';
+				oFyNcL += '';
+			}
+			if (oFxNcL < oFyNcL) return SMALLER;
+			if (oFxNcL > oFyNcL) return GREATER;
+		}
+		return EQUAL;
+	};
 }
-
-// 判断字符是否为中文
-function isChinese(char) {
-	return /^[\u4E00-\u9FA5]$/.test(char);
-}
-
 // 完整名称排序
 const sortListByName = (vodList,key,order) => {
 	if(!key){
 		return vodList
 	}
 	order = order||'asc'; // 默认正序
-	let ASCarr = vodList.sort((a, b) => {
-		a = a[key];
-		b = b[key];
-		// 数字排在字符串前面
-		if (typeof a === 'number' && typeof b === 'string') {
-			return -1;
-		}
-
-		if (typeof a === 'string' && typeof b === 'number') {
-			return 1;
-		}
-
-		// 当存在非数字时
-		if (isNaN(a) || isNaN(b)) {
-
-			// 全汉字的排在非全汉字的后面
-			if (isAllChinese(a) && !isAllChinese(b)) {
-				return 1;
-			}
-
-			if (!isAllChinese(a) && isAllChinese(b)) {
-				return -1;
-			}
-
-			// 存在非数字的数据时，都转为字符串进行比较
-			a = a.toString();
-			b = b.toString();
-
-			let result = 0;
-
-			// 依次比较两个字符串的各项字符
-			for (let index = 0; index < ((a.length - b.length) ? b.length : a.length); index++) {
-
-				// 汉字排在非汉字的后面
-				if (!isChinese(a[index]) && isChinese(b[index])) {
-					result = -1;
-				}
-
-				if (isChinese(a[index]) && !isChinese(b[index])) {
-					result = 1;
-				}
-
-				// 若两个汉字进行比较，则比较他们的拼音首字母
-				if (isChinese(a[index]) && isChinese(b[index])) {
-					let pinyinA = getFirstLetterList(a[index]).toString();
-					let pinyinB = getFirstLetterList(b[index]).toString();
-
-					result = pinyinA.localeCompare(pinyinB, 'zh-Hans-CN', { sensitivity: 'accent' });
-				}
-
-				// 若已经比较出结果，则跳出循环，不再继续比较剩余字符
-				if (result !== 0) {
-					break
-				}
-			}
-
-			// 只要有一个无法转换为数字——转换为字符串进行比较——先按字符排序，然后按照数字排序
-			return result || a.toString().localeCompare(b.toString(), 'zh-Hans-CN', { sensitivity: 'accent' });
-		} else {
-			// 都能转换为数字——转换为数字进行比较——从小到大排序
-			return Number(a) - Number(b);
-		}
-	});
-	if(order==='desc'){
-		ASCarr.reverse();
-	}
-	return ASCarr
+	// 排序键,顺序,区分大小写
+	return vodList.sort(naturalSort({key: key, order: order,caseSensitive:true}))
 };
 
 const getTimeInt = (timeStr) => {
